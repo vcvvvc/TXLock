@@ -72,3 +72,23 @@ func TestRunValidIndexMaxBoundary(t *testing.T) {
 		t.Fatalf("expected 0, got %d", code)
 	}
 }
+
+func TestRunMnemonicCanonicalizedEmptyReturns2(t *testing.T) {
+	code := run([]string{"-mnemonic-env", "MNEM"}, func(string) string {
+		return " \t "
+	})
+
+	if code != 2 {
+		t.Fatalf("expected 2, got %d", code)
+	}
+}
+
+func TestRunMnemonicCanonicalizedSuccess(t *testing.T) {
+	code := run([]string{"-mnemonic-env", "MNEM"}, func(string) string {
+		return "  ABANDON   abandon \tABOUT  "
+	})
+
+	if code != 0 {
+		t.Fatalf("expected 0, got %d", code)
+	}
+}

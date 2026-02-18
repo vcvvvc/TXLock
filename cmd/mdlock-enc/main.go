@@ -31,9 +31,16 @@ func run(args []string, getenv func(string) string) int {
 	if *mnemonicEnv == "" {
 		return 1
 	}
-	if getenv(*mnemonicEnv) == "" {
+	rawMnemonic := getenv(*mnemonicEnv)
+	if rawMnemonic == "" {
 		return 1
 	}
+
+	mnemonicCanonical, ok := canonicalizeMnemonic(rawMnemonic)
+	if !ok {
+		return 2
+	}
+	_ = mnemonicCanonical
 
 	if *encIndex == "" {
 		*encIndex = "777"
