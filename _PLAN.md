@@ -39,7 +39,7 @@
     - `go test ./...` green.
     - Derivation tests are stable and reproducible.
 - [x] M5: Implement encryption core (HKDF + AES-256-GCM + AAD template).
-- [ ] M6: Implement strict markdown envelope parser/builder.
+- [x] M6: Implement strict markdown envelope parser/builder.
 - [ ] M7: Wire end-to-end CLI workflows and error mapping.
 - [ ] M8: Complete round-trip/tamper/error-code tests.
 
