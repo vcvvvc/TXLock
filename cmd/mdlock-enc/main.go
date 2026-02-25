@@ -4,6 +4,8 @@ import (
 	"flag"
 	"io"
 	"os"
+
+	"MDLOCK/internal/derive"
 )
 
 func main() {
@@ -56,6 +58,11 @@ func run(args []string, getenv func(string) string) int {
 	}
 
 	_ = path
+	sk, err := derive.DeriveSK(mnemonicCanonical, *encIndex)
+	if err != nil {
+		return 2
+	}
+	_ = sk
 
 	return 0
 }

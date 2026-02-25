@@ -21,7 +21,23 @@
 ## Next Steps
 - [x] M2: Implement path rule module (`m/44'/60'/0'/0/<i>` strict validation).
 - [x] M3: Implement mnemonic canonicalization (NFKD/whitespace/lowercase policy per docs).
-- [ ] M4: Implement key derivation with forked BIP modules.
+- [x] M4: Implement key derivation with forked BIP modules.
+  - [x] M4.1 Define derivation API in a dedicated package:
+    - `DeriveSK(mnemonicCanonical string, index string) ([]byte, error)`
+  - [x] M4.2 Wire canonical mnemonic -> BIP39 seed:
+    - PBKDF2-HMAC-SHA512, iter=2048, dkLen=64.
+    - Password must be `mnemonicCanonical` only.
+  - [x] M4.3 Wire BIP32/BIP44 child derivation:
+    - Fixed path `m/44'/60'/0'/0/<i>`.
+    - Output must be 32-byte leaf private key `sk`.
+  - [x] M4.4 Add deterministic test vectors:
+    - `mnemonic + index=777 -> expected sk(hex)`.
+    - Negative tests: invalid mnemonic/checksum, invalid index.
+  - [x] M4.5 Integrate into `mdlock-enc` flow:
+    - Keep current exit-code contract (`1` arg/env, `2` data/crypto).
+  - [x] M4.6 Acceptance gate:
+    - `go test ./...` green.
+    - Derivation tests are stable and reproducible.
 - [ ] M5: Implement encryption core (HKDF + AES-256-GCM + AAD template).
 - [ ] M6: Implement strict markdown envelope parser/builder.
 - [ ] M7: Wire end-to-end CLI workflows and error mapping.

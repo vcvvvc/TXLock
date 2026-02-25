@@ -4,6 +4,12 @@ import (
 	"testing"
 )
 
+// Why(中文): 固定合法助记词夹具，避免“助记词非法”干扰索引规则与参数层测试目标。
+// Why(English): Use one valid mnemonic fixture so index/argument tests are not polluted by mnemonic validity failures.
+func fixtureMnemonic() string {
+	return "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+}
+
 func TestRunMissingMnemonicEnv(t *testing.T) {
 	code := run([]string{"-in", "-", "-out", "-"}, func(string) string { return "" })
 	if code != 1 {
@@ -24,7 +30,7 @@ func TestRunSuccessWithMnemonicEnv(t *testing.T) {
 
 func TestRunSuccessWithIndex(t *testing.T) {
 	code := run([]string{"-mnemonic-env", "MNEM", "-index="}, func(string) string {
-		return "x"
+		return fixtureMnemonic()
 
 	})
 
@@ -35,7 +41,7 @@ func TestRunSuccessWithIndex(t *testing.T) {
 
 func TestRunInvalidIndexLeadingZero(t *testing.T) {
 	code := run([]string{"-mnemonic-env", "MNEM", "-index=001"}, func(string) string {
-		return "x"
+		return fixtureMnemonic()
 	})
 
 	if code != 1 {
@@ -45,7 +51,7 @@ func TestRunInvalidIndexLeadingZero(t *testing.T) {
 
 func TestRunInvalidIndexNonDecimal(t *testing.T) {
 	code := run([]string{"-mnemonic-env", "MNEM", "-index=abc"}, func(string) string {
-		return "x"
+		return fixtureMnemonic()
 	})
 
 	if code != 1 {
@@ -55,7 +61,7 @@ func TestRunInvalidIndexNonDecimal(t *testing.T) {
 
 func TestRunInvalidIndexOverflow(t *testing.T) {
 	code := run([]string{"-mnemonic-env", "MNEM", "-index=2147483648"}, func(string) string {
-		return "x"
+		return fixtureMnemonic()
 	})
 
 	if code != 1 {
@@ -65,7 +71,7 @@ func TestRunInvalidIndexOverflow(t *testing.T) {
 
 func TestRunValidIndexMaxBoundary(t *testing.T) {
 	code := run([]string{"-mnemonic-env", "MNEM", "-index=2147483647"}, func(string) string {
-		return "x"
+		return fixtureMnemonic()
 	})
 
 	if code != 0 {
@@ -85,7 +91,7 @@ func TestRunMnemonicCanonicalizedEmptyReturns2(t *testing.T) {
 
 func TestRunMnemonicCanonicalizedSuccess(t *testing.T) {
 	code := run([]string{"-mnemonic-env", "MNEM"}, func(string) string {
-		return "  ABANDON   abandon \tABOUT  "
+		return " ABANDON abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about "
 	})
 
 	if code != 0 {
