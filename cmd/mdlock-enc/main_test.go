@@ -1,7 +1,13 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
+
+	"MDLOCK/internal/derive"
+	"MDLOCK/internal/mdlock"
 )
 
 // Why(中文): 固定合法助记词夹具，避免“助记词非法”干扰索引规则与参数层测试目标。
@@ -96,5 +102,38 @@ func TestRunMnemonicCanonicalizedSuccess(t *testing.T) {
 
 	if code != 0 {
 		t.Fatalf("expected 0, got %d", code)
+	}
+}
+
+// Why(中文): 该用例锁定 CRLF 字节级回环，确保 enc 输出的 envelope 能被协议层完整恢复，不发生换行归一化漂移。
+// Why(English): This case locks byte-level CRLF round-trip so enc-generated envelopes can be fully recovered without newline normalization drift.
+func TestRunRoundTripCRLFViaEnvelope(t *testing.T) {
+	dir := t.TempDir()
+	inPath := filepath.Join(dir, "in.txt")
+	outPath := filepath.Join(dir, "out.md")
+	plain := "line1\r\nline2\r\n"
+	if err := os.WriteFile(inPath, []byte(plain), 0o644); err != nil {
+		t.Fatalf("write input: %v", err)
+	}
+	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM"}, func(string) string { return fixtureMnemonic() })
+	if code != 0 {
+		t.Fatalf("expected 0, got %d", code)
+	}
+	raw, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("read envelope: %v", err)
+	}
+	path, saltB64, nonceB64, ct, ok := mdlock.ParseEnvelopeV1(string(raw))
+	if !ok {
+		t.Fatalf("expected parse success")
+	}
+	index := strings.TrimPrefix(path, "m/44'/60'/0'/0/")
+	sk, err := derive.DeriveSK(fixtureMnemonic(), index)
+	if err != nil {
+		t.Fatalf("derive sk: %v", err)
+	}
+	got, err := mdlock.OpenV1(sk, path, saltB64, nonceB64, ct)
+	if err != nil || string(got) != plain {
+		t.Fatalf("round-trip mismatch, err=%v got=%q", err, string(got))
 	}
 }
