@@ -142,3 +142,25 @@ func TestRunValidPathOverrideSuccess(t *testing.T) {
 		t.Fatalf("expected 0, got %d", code)
 	}
 }
+
+// Why(中文): 不传 -out 时默认写入当前目录 lockfile，测试可防止默认落盘位置被无意修改。
+// Why(English): Without -out, output must default to cwd/lockfile; this test prevents accidental changes to default write location.
+func TestRunDefaultOutToTmp(t *testing.T) {
+	dir := t.TempDir()
+	cwd, _ := os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir temp dir: %v", err)
+	}
+	defer func() { _ = os.Chdir(cwd) }()
+	inPath := filepath.Join(dir, "input.mdlock")
+	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
+		t.Fatalf("write fixture input: %v", err)
+	}
+	code := run([]string{"-in", inPath, "-mnemonic-env", "MNEM"}, func(string) string { return fixtureMnemonic() })
+	if code != 0 {
+		t.Fatalf("expected 0, got %d", code)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "lockfile", "input.dec.md")); err != nil {
+		t.Fatalf("expected default output in lockfile, err=%v", err)
+	}
+}

@@ -137,3 +137,25 @@ func TestRunRoundTripCRLFViaEnvelope(t *testing.T) {
 		t.Fatalf("round-trip mismatch, err=%v got=%q", err, string(got))
 	}
 }
+
+// Why(中文): 不传 -out 时必须落在当前目录 lockfile，测试固定该默认策略避免未来行为漂移。
+// Why(English): Omitted -out must write under cwd/lockfile; this test freezes default-output behavior against future drift.
+func TestRunDefaultOutToTmp(t *testing.T) {
+	dir := t.TempDir()
+	cwd, _ := os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir temp dir: %v", err)
+	}
+	defer func() { _ = os.Chdir(cwd) }()
+	inPath := filepath.Join(dir, "input.md")
+	if err := os.WriteFile(inPath, []byte("hello"), 0o644); err != nil {
+		t.Fatalf("write input: %v", err)
+	}
+	code := run([]string{"-in", inPath, "-mnemonic-env", "MNEM"}, func(string) string { return fixtureMnemonic() })
+	if code != 0 {
+		t.Fatalf("expected 0, got %d", code)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "lockfile", "input.mdlock")); err != nil {
+		t.Fatalf("expected default output in lockfile, err=%v", err)
+	}
+}

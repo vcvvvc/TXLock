@@ -50,6 +50,7 @@ _PLAN.md
 /mdlock
 /mdlock-enc
 /mdlock-dec
+/lockfile/
 go-wallet-sdk
 !internal/mdlock/
 !internal/mdlock/**

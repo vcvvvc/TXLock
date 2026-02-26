@@ -6,6 +6,8 @@ import (
 	"flag"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"MDLOCK/internal/derive"
 	"MDLOCK/internal/mdlock"
@@ -23,7 +25,7 @@ func run(args []string, getenv func(string) string) int {
 	fs.SetOutput(io.Discard)
 
 	inPath := fs.String("in", "-", "")
-	outPath := fs.String("out", "-", "")
+	outPath := fs.String("out", "", "")
 	mnemonicEnv := fs.String("mnemonic-env", "", "")
 	encIndex := fs.String("index", "777", "")
 
@@ -32,6 +34,13 @@ func run(args []string, getenv func(string) string) int {
 	}
 	if fs.NArg() != 0 {
 		return 1
+	}
+	if *outPath == "" {
+		path, err := defaultEncOutPath(*inPath)
+		if err != nil {
+			return 2
+		}
+		*outPath = path
 	}
 	if *mnemonicEnv == "" {
 		return 1
@@ -99,4 +108,20 @@ func writeOutputBytes(path string, data []byte) error {
 		return err
 	}
 	return os.WriteFile(path, data, 0o644)
+}
+
+// Why(中文): 默认输出路径固定到当前目录 lockfile，避免输入文件分散时输出位置不可预期。
+// Why(English): Pin default output under cwd/lockfile so output location remains predictable regardless of input source path.
+func defaultEncOutPath(inPath string) (string, error) {
+	name := "stdin"
+	if inPath != "-" {
+		base := filepath.Base(inPath)
+		ext := filepath.Ext(base)
+		name = strings.TrimSuffix(base, ext)
+	}
+	dir := filepath.Join(".", "lockfile")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, name+".mdlock"), nil
 }

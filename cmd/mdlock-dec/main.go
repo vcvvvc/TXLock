@@ -4,6 +4,7 @@ import (
 	"flag"
 	"io"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -22,7 +23,7 @@ func run(args []string, getenv func(string) string) int {
 	fs.SetOutput(io.Discard)
 
 	inPath := fs.String("in", "-", "")
-	outPath := fs.String("out", "-", "")
+	outPath := fs.String("out", "", "")
 	mnemonicEnv := fs.String("mnemonic-env", "", "")
 	pathOverride := fs.String("path-override", "", "")
 
@@ -31,6 +32,13 @@ func run(args []string, getenv func(string) string) int {
 	}
 	if fs.NArg() != 0 {
 		return 1
+	}
+	if *outPath == "" {
+		path, err := defaultDecOutPath(*inPath)
+		if err != nil {
+			return 2
+		}
+		*outPath = path
 	}
 	if *mnemonicEnv == "" {
 		return 1
@@ -132,4 +140,22 @@ func writeOutputBytes(path string, data []byte) error {
 		return err
 	}
 	return os.WriteFile(path, data, 0o644)
+}
+
+// Why(中文): 默认解密输出固定到当前目录 lockfile，保证不传 -out 时产物位置稳定可预期。
+// Why(English): Keep default decrypt output under cwd/lockfile so artifact location is stable when -out is omitted.
+func defaultDecOutPath(inPath string) (string, error) {
+	name := "stdin"
+	if inPath != "-" {
+		base := filepath.Base(inPath)
+		name = strings.TrimSuffix(base, ".mdlock")
+		if name == base {
+			name = strings.TrimSuffix(base, filepath.Ext(base))
+		}
+	}
+	dir := filepath.Join(".", "lockfile")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, name+".dec.md"), nil
 }
