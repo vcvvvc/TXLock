@@ -22,13 +22,11 @@ func wrapB64Lines76(raw string) []string {
 	return out
 }
 
-// Why(中文): 严格序列化入口集中化可确保字段顺序、边界与换行规则在所有调用点完全一致。
-// Why(English): Centralizing strict envelope serialization guarantees identical field order, boundaries, and newline rules across call sites.
-func BuildEnvelopeV1(path string, saltB64 string, nonceB64 string, ctB64 string) string {
+// Why(中文): 密文头最小化可减少可见元数据暴露面，同时保持协议边界与换行规则稳定。
+// Why(English): Minimized visible header reduces metadata exposure while preserving stable boundaries and newline rules.
+func BuildEnvelopeV1(_ string, saltB64 string, nonceB64 string, ctB64 string) string {
 	var b strings.Builder
-	b.WriteString("<!--\nmdlock:v1\nchain:ethereum\npath:")
-	b.WriteString(path)
-	b.WriteString("\nkdf:hkdf-sha256\naead:aes-256-gcm\nsalt_b64:")
+	b.WriteString("<!--\nmdlock:v1\nkdf:hkdf-sha256\naead:aes-256-gcm\nsalt_b64:")
 	b.WriteString(saltB64)
 	b.WriteString("\nnonce_b64:")
 	b.WriteString(nonceB64)
@@ -57,7 +55,7 @@ func extractEnvelopeBodyV1(raw string) (string, bool) {
 // Why(English): Header parsing must be zero-tolerance at syntax level to avoid loose normalization of security-sensitive inputs.
 func parseHeaderKVV1(body string) (map[string]string, []string, bool) {
 	lines := strings.Split(body, "\n")
-	if len(lines) < 9 || lines[0] != "mdlock:v1" || lines[len(lines)-1] != "" {
+	if len(lines) < 8 || lines[0] != "mdlock:v1" || lines[len(lines)-1] != "" {
 		return nil, nil, false
 	}
 	out := map[string]string{}
@@ -125,7 +123,10 @@ func ParseEnvelopeV1(raw string) (string, string, string, []byte, bool) {
 	if !ok {
 		return "", "", "", nil, false
 	}
-	if h["chain"] != "ethereum" || h["kdf"] != "hkdf-sha256" || h["aead"] != "aes-256-gcm" {
+	if h["kdf"] != "hkdf-sha256" || h["aead"] != "aes-256-gcm" {
+		return "", "", "", nil, false
+	}
+	if chain, exists := h["chain"]; exists && chain != "ethereum" {
 		return "", "", "", nil, false
 	}
 	ct, ok := decodeCTLinesRawB64(ctLines)

@@ -48,7 +48,7 @@ func TestRunSuccessWithMnemonicEnv(t *testing.T) {
 	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
 		t.Fatalf("write fixture input: %v", err)
 	}
-	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM"}, func(string) string {
+	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM", "-path-override", "m/44'/60'/0'/0/777"}, func(string) string {
 		return fixtureMnemonic()
 	})
 	if code != 0 {
@@ -70,11 +70,11 @@ func TestRunTamperedHeaderReturns2(t *testing.T) {
 	inPath := filepath.Join(dir, "in.md")
 	outPath := filepath.Join(dir, "out.txt")
 	raw := buildFixtureEnvelope(t, []byte("hello mdlock\n"))
-	raw = strings.Replace(raw, "chain:ethereum", "chain:eth", 1)
+	raw = strings.Replace(raw, "kdf:hkdf-sha256", "kdf:hkdf-sha1", 1)
 	if err := os.WriteFile(inPath, []byte(raw), 0o644); err != nil {
 		t.Fatalf("write tampered input: %v", err)
 	}
-	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM"}, func(string) string { return fixtureMnemonic() })
+	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM", "-path-override", "m/44'/60'/0'/0/777"}, func(string) string { return fixtureMnemonic() })
 	if code != 2 {
 		t.Fatalf("expected 2, got %d", code)
 	}
@@ -89,7 +89,7 @@ func TestRunWrongMnemonicReturns2(t *testing.T) {
 	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
 		t.Fatalf("write fixture input: %v", err)
 	}
-	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM"}, func(string) string {
+	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM", "-path-override", "m/44'/60'/0'/0/777"}, func(string) string {
 		return "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
 	})
 	if code != 2 {
@@ -108,7 +108,7 @@ func TestRunInvalidCTBase64Returns2(t *testing.T) {
 	if err := os.WriteFile(inPath, []byte(raw), 0o644); err != nil {
 		t.Fatalf("write invalid ct input: %v", err)
 	}
-	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM"}, func(string) string { return fixtureMnemonic() })
+	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM", "-path-override", "m/44'/60'/0'/0/777"}, func(string) string { return fixtureMnemonic() })
 	if code != 2 {
 		t.Fatalf("expected 2, got %d", code)
 	}
@@ -152,11 +152,11 @@ func TestRunDefaultOutToTmp(t *testing.T) {
 		t.Fatalf("chdir temp dir: %v", err)
 	}
 	defer func() { _ = os.Chdir(cwd) }()
-	inPath := filepath.Join(dir, "input.mdlock")
+	inPath := filepath.Join(dir, "input.lock")
 	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
 		t.Fatalf("write fixture input: %v", err)
 	}
-	code := run([]string{"-in", inPath, "-mnemonic-env", "MNEM"}, func(string) string { return fixtureMnemonic() })
+	code := run([]string{"-in", inPath, "-mnemonic-env", "MNEM", "-path-override", "m/44'/60'/0'/0/777"}, func(string) string { return fixtureMnemonic() })
 	if code != 0 {
 		t.Fatalf("expected 0, got %d", code)
 	}

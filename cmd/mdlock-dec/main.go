@@ -59,6 +59,9 @@ func run(args []string, getenv func(string) string) int {
 	if !ok {
 		return 2
 	}
+	if path == "" && *pathOverride == "" {
+		return 1
+	}
 	if *pathOverride != "" {
 		if _, ok := indexFromPathV1(*pathOverride); !ok {
 			return 1
@@ -148,7 +151,10 @@ func defaultDecOutPath(inPath string) (string, error) {
 	name := "stdin"
 	if inPath != "-" {
 		base := filepath.Base(inPath)
-		name = strings.TrimSuffix(base, ".mdlock")
+		name = strings.TrimSuffix(base, ".lock")
+		if name == base {
+			name = strings.TrimSuffix(base, ".mdlock")
+		}
 		if name == base {
 			name = strings.TrimSuffix(base, filepath.Ext(base))
 		}

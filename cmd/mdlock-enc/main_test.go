@@ -127,12 +127,17 @@ func TestRunRoundTripCRLFViaEnvelope(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected parse success")
 	}
-	index := strings.TrimPrefix(path, "m/44'/60'/0'/0/")
+	index := "777"
+	openPath := "m/44'/60'/0'/0/777"
+	if path != "" {
+		index = strings.TrimPrefix(path, "m/44'/60'/0'/0/")
+		openPath = path
+	}
 	sk, err := derive.DeriveSK(fixtureMnemonic(), index)
 	if err != nil {
 		t.Fatalf("derive sk: %v", err)
 	}
-	got, err := mdlock.OpenV1(sk, path, saltB64, nonceB64, ct)
+	got, err := mdlock.OpenV1(sk, openPath, saltB64, nonceB64, ct)
 	if err != nil || string(got) != plain {
 		t.Fatalf("round-trip mismatch, err=%v got=%q", err, string(got))
 	}
@@ -155,7 +160,7 @@ func TestRunDefaultOutToTmp(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected 0, got %d", code)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "lockfile", "input.mdlock")); err != nil {
+	if _, err := os.Stat(filepath.Join(dir, "lockfile", "input.md.lock")); err != nil {
 		t.Fatalf("expected default output in lockfile, err=%v", err)
 	}
 }

@@ -65,16 +65,16 @@ func TestParseHeaderKVV1Strict(t *testing.T) {
 		t.Fatalf("expected extract ok")
 	}
 	h, ct, ok := parseHeaderKVV1(body)
-	if !ok || h["path"] != "m/44'/60'/0'/0/777" || len(ct) != 1 || ct[0] != "abc" {
+	if !ok || h["kdf"] != "hkdf-sha256" || h["aead"] != "aes-256-gcm" || len(ct) != 1 || ct[0] != "abc" {
 		t.Fatalf("unexpected parse result")
 	}
-	badSpace := strings.Replace(raw, "chain:ethereum", "chain: ethereum", 1)
+	badSpace := strings.Replace(raw, "kdf:hkdf-sha256", "kdf: hkdf-sha256", 1)
 	if b, ok := extractEnvelopeBodyV1(badSpace); ok {
 		if _, _, ok := parseHeaderKVV1(b); ok {
 			t.Fatalf("expected reject for whitespace variant")
 		}
 	}
-	badDup := strings.Replace(raw, "\nct_b64:\n", "\nchain:ethereum\nct_b64:\n", 1)
+	badDup := strings.Replace(raw, "\nct_b64:\n", "\nkdf:hkdf-sha256\nct_b64:\n", 1)
 	if b, ok := extractEnvelopeBodyV1(badDup); ok {
 		if _, _, ok := parseHeaderKVV1(b); ok {
 			t.Fatalf("expected reject for duplicate field")
@@ -107,10 +107,10 @@ func TestDecodeCTLinesRawB64(t *testing.T) {
 func TestParseEnvelopeV1(t *testing.T) {
 	raw := BuildEnvelopeV1("m/44'/60'/0'/0/777", "saltx", "noncey", base64.RawStdEncoding.EncodeToString([]byte("abc")))
 	path, saltB64, nonceB64, ct, ok := ParseEnvelopeV1(raw)
-	if !ok || path != "m/44'/60'/0'/0/777" || saltB64 != "saltx" || nonceB64 != "noncey" || string(ct) != "abc" {
+	if !ok || path != "" || saltB64 != "saltx" || nonceB64 != "noncey" || string(ct) != "abc" {
 		t.Fatalf("unexpected parse envelope result")
 	}
-	bad := strings.Replace(raw, "chain:ethereum", "chain:eth", 1)
+	bad := strings.Replace(raw, "\nct_b64:\n", "\nchain:eth\nct_b64:\n", 1)
 	if _, _, _, _, ok := ParseEnvelopeV1(bad); ok {
 		t.Fatalf("expected reject for chain drift")
 	}
@@ -129,6 +129,9 @@ func TestEnvelopeRoundTripV1(t *testing.T) {
 	path, saltB64, nonceB64, ct, ok := ParseEnvelopeV1(raw)
 	if !ok {
 		t.Fatalf("unexpected parse failure")
+	}
+	if path == "" {
+		path = "m/44'/60'/0'/0/777"
 	}
 	ptOut, err := OpenV1(sk, path, saltB64, nonceB64, ct)
 	if err != nil {

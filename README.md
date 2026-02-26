@@ -1,10 +1,12 @@
 # MDLock
 
-> 目标：10 年后仅凭 BIP39 助记词离线恢复同一私钥并解密；不依赖特定钱包产品；加密文件保持 Markdown 稳定格式。
+> 仅凭 BIP39/44 助记词离线加密工具。
+> 凭助记词+path+index 稳定恢复并解密。
+> 不依赖特定钱包产品，正常生成的 ETH 钱包即可；输入支持任意文本格式（如 `.txt/.md/.json`），输出统一为 `.lock` 容器文件。
 
 ## 使用方法
 
-### 1. 准备助记词环境变量
+### 1. 准备助记词环境变量(12/24位)
 
 ```bash
 export MNEM=''
@@ -19,31 +21,31 @@ go build -o ./bin/mdlock-enc ./cmd/mdlock-enc
 go build -o ./bin/mdlock-dec ./cmd/mdlock-dec
 ```
 
-编译后可直接运行：
+编译后可直接运行测试：
 
 ```bash
 ./bin/mdlock-enc -in docs/proxy_sol.md -mnemonic-env MNEM -index 777
-./bin/mdlock-dec -in lockfile/proxy_sol.mdlock -mnemonic-env MNEM
+./bin/mdlock-dec -in lockfile/proxy_sol.md.lock -mnemonic-env MNEM -path-override "m/44'/60'/0'/0/777"
 ```
 
 ### 4. 快速命令（加密 + 解密）
 
 ```bash
-./bin/mdlock-dec -in lockfile/proxy_sol.mdlock -mnemonic-env MNEM
+./bin/mdlock-dec -in lockfile/proxy_sol.md.lock -mnemonic-env MNEM -path-override "m/44'/60'/0'/0/777"
 ```
 
 ### 5. 输出策略（默认与覆盖）
 
 - 不传 `-out`：默认输出到当前目录 `./lockfile/`
-  - enc：`<输入文件名去扩展>.mdlock`
-  - dec：`<输入文件名去 .mdlock 后缀>.dec.md`
+  - enc：`<输入文件名>.lock`（例如 `proxy_sol.md.lock`）
+  - dec：`<输入文件名去 .lock 后缀>.dec.md`
 - 传 `-out`：严格按你提供的路径输出（含 `-out -` 输出到 stdout）
 
 示例（显式覆盖默认）：
 
 ```bash
-./bin/mdlock-enc -in docs/proxy_sol.md -out ./lockfile/custom.mdlock -mnemonic-env MNEM
-./bin/mdlock-dec -in lockfile/custom.mdlock -out ./lockfile/custom.dec.md -mnemonic-env MNEM
+./bin/mdlock-enc -in docs/proxy_sol.md -out ./lockfile/custom.lock -mnemonic-env MNEM
+./bin/mdlock-dec -in lockfile/custom.lock -out ./lockfile/custom.dec.md -mnemonic-env MNEM -path-override "m/44'/60'/0'/0/777"
 ```
 
 ### 6. 字节级回环校验

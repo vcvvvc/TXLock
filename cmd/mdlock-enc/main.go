@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"MDLOCK/internal/derive"
 	"MDLOCK/internal/mdlock"
@@ -116,12 +115,11 @@ func defaultEncOutPath(inPath string) (string, error) {
 	name := "stdin"
 	if inPath != "-" {
 		base := filepath.Base(inPath)
-		ext := filepath.Ext(base)
-		name = strings.TrimSuffix(base, ext)
+		name = base
 	}
 	dir := filepath.Join(".", "lockfile")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, name+".mdlock"), nil
+	return filepath.Join(dir, name+".lock"), nil
 }
