@@ -21,5 +21,5 @@
 ## 3. 约束
 - `salt_hex` 与 `nonce_hex` 仅用于测试向量，生产实现必须始终使用 `crypto/rand`。
 - 测试断言按规范固定：`RawStdEncoding`、AAD 模板、严格注释边界与字段语法。
-- `docs/proxy_sol.md` 作为待加密明文语料库，可包含多种格式输入，用于 round-trip 与解析稳定性测试。
-- 本文件仅承载“确定性向量夹具”；不要把 `docs/proxy_sol.md` 的业务文本内容复制到这里。
+- `docs/proxy-sol.md` 作为待加密明文语料库，可包含多种格式输入，用于 round-trip 与解析稳定性测试。
+- 本文件仅承载“确定性向量夹具”；不要把 `docs/proxy-sol.md` 的业务文本内容复制到这里。

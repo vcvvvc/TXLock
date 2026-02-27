@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -25,9 +26,13 @@ func run(args []string, getenv func(string) string) int {
 	inPath := fs.String("in", "-", "")
 	outPath := fs.String("out", "", "")
 	mnemonicEnv := fs.String("mnemonic-env", "", "")
-	pathOverride := fs.String("path-override", "", "")
+	decIndex := fs.String("index", "", "")
 
 	if err := fs.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			printDecUsage()
+			return 0
+		}
 		return 1
 	}
 	if fs.NArg() != 0 {
@@ -41,49 +46,71 @@ func run(args []string, getenv func(string) string) int {
 		*outPath = path
 	}
 	if *mnemonicEnv == "" {
-		return 1
+		return failDecUsage("-mnemonic-env is required")
 	}
 	rawMnemonic := getenv(*mnemonicEnv)
 	if rawMnemonic == "" {
-		return 1
+		return failDecUsage("mnemonic env is empty: " + *mnemonicEnv)
 	}
 	mnemonicCanonical, ok := canonicalizeMnemonic(rawMnemonic)
 	if !ok {
-		return 2
+		return failDecProcess("invalid mnemonic")
 	}
 	raw, err := readInputBytes(*inPath)
 	if err != nil {
-		return 2
+		return failDecProcess("read input failed")
 	}
-	path, saltB64, nonceB64, ct, ok := mdlock.ParseEnvelopeV1(string(raw))
+	if *decIndex == "" {
+		return failDecUsage("-index is required")
+	}
+	if !validateIndex(*decIndex) {
+		return failDecUsage("invalid -index: " + *decIndex)
+	}
+	path, ok := buildPathFromIndex(*decIndex)
 	if !ok {
-		return 2
+		return failDecUsage("failed to build path from -index: " + *decIndex)
 	}
-	if path == "" && *pathOverride == "" {
-		return 1
-	}
-	if *pathOverride != "" {
-		if _, ok := indexFromPathV1(*pathOverride); !ok {
-			return 1
-		}
-		path = *pathOverride
-	}
-	index, ok := indexFromPathV1(path)
+	_, saltB64, nonceB64, ct, ok := mdlock.ParseEnvelopeV1(string(raw))
 	if !ok {
-		return 2
+		return failDecProcess("invalid envelope")
 	}
-	sk, err := derive.DeriveSK(mnemonicCanonical, index)
+	sk, err := derive.DeriveSK(mnemonicCanonical, *decIndex)
 	if err != nil {
-		return 2
+		return failDecProcess("derive key failed")
 	}
 	plain, err := mdlock.OpenV1(sk, path, saltB64, nonceB64, ct)
 	if err != nil {
-		return 2
+		return failDecProcess("decrypt failed (index/mnemonic mismatch or tampered data)")
 	}
 	if err := writeOutputBytes(*outPath, plain); err != nil {
-		return 2
+		return failDecProcess("write output failed")
 	}
 	return 0
+}
+
+// Why(中文): 参数类失败打印明确 stderr 诊断，避免用户只看到退出码却误以为命令未报错。
+// Why(English): Print explicit stderr diagnostics for usage failures so users don't mistake silent exit codes for success.
+func failDecUsage(msg string) int {
+	_, _ = io.WriteString(os.Stderr, "mdlock-dec: "+msg+"\n")
+	return 1
+}
+
+// Why(中文): 处理层失败也输出明确 stderr，避免解密失败只剩退出码导致排障成本上升。
+// Why(English): Emit explicit stderr on processing failures so decrypt errors are diagnosable without relying on exit code alone.
+func failDecProcess(msg string) int {
+	_, _ = io.WriteString(os.Stderr, "mdlock-dec: "+msg+"\n")
+	return 2
+}
+
+// Why(中文): dec 与 enc 保持一致的帮助输出策略，避免用户在禁用默认 flag 输出时无法发现参数约定。
+// Why(English): Keep dec help behavior aligned with enc so users can discover flags even when default flag output is suppressed.
+func printDecUsage() {
+	fmt.Fprintln(os.Stdout, "Usage: mdlock-dec -mnemonic-env ENV -index N [-in PATH|-] [-out PATH|-]")
+	fmt.Fprintln(os.Stdout, "Flags:")
+	fmt.Fprintln(os.Stdout, "  -mnemonic-env string   环境变量名，变量值为助记词 (required)")
+	fmt.Fprintln(os.Stdout, "  -index string          派生索引 (required)")
+	fmt.Fprintln(os.Stdout, "  -in string             输入文件路径，默认 - (stdin)")
+	fmt.Fprintln(os.Stdout, "  -out string            输出文件路径，默认 ./lockfile/unlock/<name-without-.lock>")
 }
 
 // Why(中文): 解密侧必须复用同一助记词归一化语义，保证 enc/dec 对同义输入派生结果一致。
@@ -97,18 +124,14 @@ func canonicalizeMnemonic(raw string) (string, bool) {
 	return out, out != ""
 }
 
-// Why(中文): 从协议路径中抽取 index 并复用现有索引规则，避免解密侧出现独立且漂移的路径语义。
-// Why(English): Extract index from protocol path and reuse existing index rules to prevent drift from a separate path semantic.
-func indexFromPathV1(path string) (string, bool) {
+// Why(中文): 解密侧统一由 index 构造 path，避免依赖信封内 path 字段导致可恢复性和参数语义不一致。
+// Why(English): Build path from index on decrypt so behavior no longer depends on envelope path presence or format.
+func buildPathFromIndex(index string) (string, bool) {
 	const prefix = "m/44'/60'/0'/0/"
-	if len(path) <= len(prefix) || path[:len(prefix)] != prefix {
-		return "", false
-	}
-	index := path[len(prefix):]
 	if !validateIndex(index) {
 		return "", false
 	}
-	return index, true
+	return prefix + index, true
 }
 
 // Why(中文): 复用与加密侧一致的索引边界，确保路径恢复后不会出现解密侧“额外容忍”。
@@ -145,8 +168,8 @@ func writeOutputBytes(path string, data []byte) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
-// Why(中文): 默认解密输出固定到当前目录 lockfile，保证不传 -out 时产物位置稳定可预期。
-// Why(English): Keep default decrypt output under cwd/lockfile so artifact location is stable when -out is omitted.
+// Why(中文): 默认把解密产物落到 unlock 子目录，与密文产物隔离，便于人工与脚本按目录分流。
+// Why(English): Put decrypted artifacts under unlock subdir so plaintext/ciphertext are separated for both humans and automation.
 func defaultDecOutPath(inPath string) (string, error) {
 	name := "stdin"
 	if inPath != "-" {
@@ -159,9 +182,9 @@ func defaultDecOutPath(inPath string) (string, error) {
 			name = strings.TrimSuffix(base, filepath.Ext(base))
 		}
 	}
-	dir := filepath.Join(".", "lockfile")
+	dir := filepath.Join(".", "lockfile", "unlock")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, name+".dec.md"), nil
+	return filepath.Join(dir, name), nil
 }

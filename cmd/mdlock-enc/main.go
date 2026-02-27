@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"flag"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -29,6 +30,10 @@ func run(args []string, getenv func(string) string) int {
 	encIndex := fs.String("index", "777", "")
 
 	if err := fs.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			printEncUsage()
+			return 0
+		}
 		return 1
 	}
 	if fs.NArg() != 0 {
@@ -42,11 +47,11 @@ func run(args []string, getenv func(string) string) int {
 		*outPath = path
 	}
 	if *mnemonicEnv == "" {
-		return 1
+		return failEncUsage("-mnemonic-env is required")
 	}
 	rawMnemonic := getenv(*mnemonicEnv)
 	if rawMnemonic == "" {
-		return 1
+		return failEncUsage("mnemonic env is empty: " + *mnemonicEnv)
 	}
 
 	mnemonicCanonical, ok := canonicalizeMnemonic(rawMnemonic)
@@ -60,12 +65,12 @@ func run(args []string, getenv func(string) string) int {
 	}
 
 	if !validateIndex(*encIndex) {
-		return 1
+		return failEncUsage("invalid -index: " + *encIndex)
 	}
 
 	path, ok := buildPathFromIndex(*encIndex)
 	if ok == false {
-		return 1
+		return failEncUsage("failed to build path from -index: " + *encIndex)
 	}
 
 	_ = path
@@ -90,6 +95,24 @@ func run(args []string, getenv func(string) string) int {
 	return 0
 }
 
+// Why(中文): 参数类失败之前输出明确错误文本，避免仅靠退出码导致“看起来没报错”的误判。
+// Why(English): Emit explicit usage errors before returning so failures are visible instead of relying on exit code alone.
+func failEncUsage(msg string) int {
+	_, _ = io.WriteString(os.Stderr, "mdlock-enc: "+msg+"\n")
+	return 1
+}
+
+// Why(中文): 在保持原有退出码语义的同时，单独处理帮助请求，避免被静默丢弃造成“命令无响应”误判。
+// Why(English): Handle help explicitly so usage isn't swallowed by discarded flag output while preserving existing exit-code semantics.
+func printEncUsage() {
+	fmt.Fprintln(os.Stdout, "Usage: mdlock-enc -mnemonic-env ENV [-in PATH|-] [-out PATH|-] [-index N]")
+	fmt.Fprintln(os.Stdout, "Flags:")
+	fmt.Fprintln(os.Stdout, "  -mnemonic-env string   环境变量名，变量值为助记词 (required)")
+	fmt.Fprintln(os.Stdout, "  -in string             输入文件路径，默认 - (stdin)")
+	fmt.Fprintln(os.Stdout, "  -out string            输出文件路径，默认 ./lockfile/lock/<name>.lock")
+	fmt.Fprintln(os.Stdout, "  -index string          派生索引，默认 777")
+}
+
 // Why(中文): 把输入源选择逻辑集中化，确保文件与 stdin 两种路径遵循同一错误语义。
 // Why(English): Centralize input source selection so file and stdin paths share identical error semantics.
 func readInputBytes(path string) ([]byte, error) {
@@ -109,15 +132,15 @@ func writeOutputBytes(path string, data []byte) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
-// Why(中文): 默认输出路径固定到当前目录 lockfile，避免输入文件分散时输出位置不可预期。
-// Why(English): Pin default output under cwd/lockfile so output location remains predictable regardless of input source path.
+// Why(中文): 默认把加密产物落到 lock 子目录，和解密产物物理隔离，降低覆盖和误读风险。
+// Why(English): Put encrypted artifacts under lock subdir to separate from decrypted outputs and reduce overwrite/read confusion.
 func defaultEncOutPath(inPath string) (string, error) {
 	name := "stdin"
 	if inPath != "-" {
 		base := filepath.Base(inPath)
 		name = base
 	}
-	dir := filepath.Join(".", "lockfile")
+	dir := filepath.Join(".", "lockfile", "lock")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", err
 	}

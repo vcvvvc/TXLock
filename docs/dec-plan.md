@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 - 本文定义 MDLOCK v1 的加密与认证实现细节。
-- 派生私钥来源见 `plan.md`：输入为 32-byte `sk`（叶子私钥字节）。
+- 派生私钥来源见 `plan-overview.md`：输入为 32-byte `sk`（叶子私钥字节）。
 - 本文只定义加密方案，不定义助记词与 BIP 派生流程。
 
 ## 2. 设计目标与边界
@@ -27,7 +27,7 @@
 
 ## 4. 输入与输出
 - 输入：
-  - `sk`：32 bytes（来自 `plan.md` 派生）。
+  - `sk`：32 bytes（来自 `plan-overview.md` 派生）。
   - `path`：`m/44'/60'/0'/0/<i>` 规范字符串。
   - `plaintext`：原始字节流（不规范化）。
 - 输出：
@@ -132,4 +132,4 @@ nonce_b64:<NONCE_B64>\n
 - 助记词与路径：测试夹具固定 1 条 English 助记词，路径固定 `m/44'/60'/0'/0/777`。
 - `salt/nonce`：仅在测试中允许注入固定字节值以获得稳定 `ct` 断言；生产路径必须始终使用 `crypto/rand`。
 - 参数范围：除 `--index` 外不引入新业务参数；测试覆盖基于现有 CLI 参数与固定夹具。
-- 文件级输入：`docs/proxy_sol.md` 作为 Markdown 明文样本参与 round-trip 与封装边界测试。
+- 文件级输入：`docs/proxy-sol.md` 作为 Markdown 明文样本参与 round-trip 与封装边界测试。

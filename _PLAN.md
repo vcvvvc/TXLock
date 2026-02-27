@@ -1,52 +1,45 @@
-# MDLOCK Implementation Plan (Reset)
+# MDLOCK Plan (Retained)
 
-## Context
-- Goal: Build MDLOCK CLI (`mdlock-enc`, `mdlock-dec`) step-by-step for beginner-friendly delivery.
-- Current repo state:
-  - Dependency baseline is ready in `go.mod` (`github.com/vcvvvc/go-wallet-sdk/crypto`).
-  - CLI skeleton has been rebuilt under `cmd/`.
-  - No crypto workflow is wired yet.
+## Status Snapshot
+- Project state: core encryption/decryption workflow is complete and test-covered.
+- Dependency baseline: `github.com/vcvvvc/go-wallet-sdk/crypto` (v0.1.0).
+- Plan mode: historical milestones are closed; this file is retained as a stable project anchor.
 
-## Progress
-- [x] M0: Recreate CLI entry skeleton.
-  - `cmd/mdlock-enc/main.go`
-  - `cmd/mdlock-dec/main.go`
-- [x] M1: Freeze minimal argument + exit-code behavior.
-  - Required: `-mnemonic-env`
-  - Error path: `exit 1`
-  - Minimal success path: `exit 0`
-- [x] Tests for M0/M1 pass:
+## Completed Milestones
+- [x] M0: CLI entry skeleton (`mdlock-enc`, `mdlock-dec`).
+- [x] M1: Argument and exit-code baseline (`1` usage, `2` processing).
+- [x] M2: Path/index rule module (`m/44'/60'/0'/0/<i>` validation).
+- [x] M3: Mnemonic normalization pipeline.
+- [x] M4: Key derivation (`DeriveSK`) with deterministic vectors.
+- [x] M5: Encryption core (HKDF-SHA256 + AES-256-GCM + fixed AAD).
+- [x] M6: Strict markdown envelope parser/builder.
+- [x] M7: End-to-end CLI wiring with file/stdin/stdout flow.
+- [x] M8: Round-trip/tamper/error-class tests closure.
+
+## Contract Snapshot (Current CLI Behavior)
+- `mdlock-enc`:
+  - Requires `-mnemonic-env`.
+  - `-index` optional, defaults to `777`.
+  - Default output path: `./lockfile/lock/<input>.lock`.
+- `mdlock-dec`:
+  - Requires `-mnemonic-env` and `-index`.
+  - Does not use `-path-override`.
+  - Default output path: `./lockfile/unlock/<input-without-.lock>`.
+- Error signaling:
+  - Usage errors: exit `1` + stderr message.
+  - Processing errors: exit `2` + stderr message.
+
+## Validation Gate
+- Primary check:
   - `go test ./...`
+- Optional CLI sanity check:
+  - `go run ./cmd/mdlock-enc -h`
+  - `go run ./cmd/mdlock-dec -h`
 
-## Next Steps
-- [x] M2: Implement path rule module (`m/44'/60'/0'/0/<i>` strict validation).
-- [x] M3: Implement mnemonic canonicalization (NFKD/whitespace/lowercase policy per docs).
-- [x] M4: Implement key derivation with forked BIP modules.
-  - [x] M4.1 Define derivation API in a dedicated package:
-    - `DeriveSK(mnemonicCanonical string, index string) ([]byte, error)`
-  - [x] M4.2 Wire canonical mnemonic -> BIP39 seed:
-    - PBKDF2-HMAC-SHA512, iter=2048, dkLen=64.
-    - Password must be `mnemonicCanonical` only.
-  - [x] M4.3 Wire BIP32/BIP44 child derivation:
-    - Fixed path `m/44'/60'/0'/0/<i>`.
-    - Output must be 32-byte leaf private key `sk`.
-  - [x] M4.4 Add deterministic test vectors:
-    - `mnemonic + index=777 -> expected sk(hex)`.
-    - Negative tests: invalid mnemonic/checksum, invalid index.
-  - [x] M4.5 Integrate into `mdlock-enc` flow:
-    - Keep current exit-code contract (`1` arg/env, `2` data/crypto).
-  - [x] M4.6 Acceptance gate:
-    - `go test ./...` green.
-    - Derivation tests are stable and reproducible.
-- [x] M5: Implement encryption core (HKDF + AES-256-GCM + AAD template).
-- [x] M6: Implement strict markdown envelope parser/builder.
-- [x] M7: Wire end-to-end CLI workflows and error mapping.
-- [x] M8: Complete round-trip/tamper/error-code tests.
-
-## Execution Rules
-- Keep each change small and verifiable.
-- Run diagnostics after each edit.
-- Keep `_PLAN.md` as the single progress anchor.
-
-## Notes
-- Dependency source: `github.com/vcvvvc/go-wallet-sdk/crypto` (v0.1.0).
+## Maintenance Notes
+- Keep `_PLAN.md` as the single retained progress/context anchor.
+- For any new contract change, update:
+  - CLI help text
+  - tests
+  - README
+  - this plan snapshot

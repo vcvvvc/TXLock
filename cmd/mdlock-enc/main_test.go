@@ -160,7 +160,7 @@ func TestRunDefaultOutToTmp(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected 0, got %d", code)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "lockfile", "input.md.lock")); err != nil {
-		t.Fatalf("expected default output in lockfile, err=%v", err)
+	if _, err := os.Stat(filepath.Join(dir, "lockfile", "lock", "input.md.lock")); err != nil {
+		t.Fatalf("expected default output in lockfile/lock, err=%v", err)
 	}
 }

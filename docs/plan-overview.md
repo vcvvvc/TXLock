@@ -23,7 +23,7 @@
 - v1 不支持非 English 词表；扩展词表时必须升级版本（例如 `v2`）。
 
 ## 3. 加密构造（已迁移）
-- 具体加密方案已迁移到 `dec_plan.md`，`plan.md` 仅保留总览与边界约束。
+- 具体加密方案已迁移到 `dec-plan.md`，`plan-overview.md` 仅保留总览与边界约束。
 
 ## 4. 文件格式（Markdown 保证格式稳定）
 - 输出为单个 HTML 注释块，头字段固定：
@@ -87,13 +87,13 @@
 - 路径：固定 `index = 777`，即 `m/44'/60'/0'/0/777`。
 - 参数策略：除 `--index` 外不新增业务参数；测试仅围绕现有参数与固定夹具展开。
 - 约束：夹具助记词可用于测试与示例，禁止与任何真实资产共用。
-- 职责分层：`docs/test_vectors.md` 负责确定性密码学向量；`docs/proxy_sol.md` 负责 Markdown 明文输入样本（文件级 round-trip 测试）。
+- 职责分层：`docs/test-vectors.md` 负责确定性密码学向量；`docs/proxy-sol.md` 负责 Markdown 明文输入样本（文件级 round-trip 测试）。
 
 ## 8. 交付物
-- `plan.md`：本精简规范。
-- `dec_plan.md`：加密方案细节（v1）。
+- `plan-overview.md`：本精简规范。
+- `dec-plan.md`：加密方案细节（v1）。
 - `docs/recovery.md`：离线恢复说明（含 BIP39/BIP32/BIP44 固定参数）。
 - `cmd/mdlock-enc`、`cmd/mdlock-dec`：两个独立 CLI。
-- `docs/test_vectors.md`：测试夹具（固定助记词与向量）。
-- `docs/proxy_sol.md`：待加密明文样本（多格式语料）。
+- `docs/test-vectors.md`：测试夹具（固定助记词与向量）。
+- `docs/proxy-sol.md`：待加密明文样本（多格式语料）。
 - `*_test.go`：覆盖派生、加解密、篡改、错误码。
