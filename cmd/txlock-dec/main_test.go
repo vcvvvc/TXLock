@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"TXLOCK/internal/derive"
-	"TXLOCK/internal/mdlock"
+	"TXLOCK/internal/lockcore"
 )
 
 func fixtureMnemonic() string {
@@ -24,12 +24,12 @@ func buildFixtureEnvelope(t *testing.T, plaintext []byte) string {
 	if err != nil {
 		t.Fatalf("derive fixture sk: %v", err)
 	}
-	sealed, err := mdlock.SealV1(sk, "m/44'/60'/0'/0/777", plaintext, bytes.NewReader(make([]byte, 64)))
+	sealed, err := lockcore.SealV1(sk, "m/44'/60'/0'/0/777", plaintext, bytes.NewReader(make([]byte, 64)))
 	if err != nil {
 		t.Fatalf("seal fixture: %v", err)
 	}
 	ctB64 := base64.RawStdEncoding.EncodeToString(sealed.Ciphertext)
-	return mdlock.BuildEnvelopeV1("m/44'/60'/0'/0/777", sealed.SaltB64, sealed.NonceB64, ctB64)
+	return lockcore.BuildEnvelopeV1("m/44'/60'/0'/0/777", sealed.SaltB64, sealed.NonceB64, ctB64)
 }
 
 func TestRunMissingMnemonicEnv(t *testing.T) {
@@ -45,7 +45,7 @@ func TestRunSuccessWithMnemonicEnv(t *testing.T) {
 	dir := t.TempDir()
 	inPath := filepath.Join(dir, "in.md")
 	outPath := filepath.Join(dir, "out.txt")
-	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
+	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello txlock\n"))), 0o644); err != nil {
 		t.Fatalf("write fixture input: %v", err)
 	}
 	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM", "-index", "777"}, func(string) string {
@@ -58,7 +58,7 @@ func TestRunSuccessWithMnemonicEnv(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read output: %v", err)
 	}
-	if string(got) != "hello mdlock\n" {
+	if string(got) != "hello txlock\n" {
 		t.Fatalf("unexpected plaintext: %q", string(got))
 	}
 }
@@ -69,7 +69,7 @@ func TestRunTamperedHeaderReturns2(t *testing.T) {
 	dir := t.TempDir()
 	inPath := filepath.Join(dir, "in.md")
 	outPath := filepath.Join(dir, "out.txt")
-	raw := buildFixtureEnvelope(t, []byte("hello mdlock\n"))
+	raw := buildFixtureEnvelope(t, []byte("hello txlock\n"))
 	raw = strings.Replace(raw, "kdf:hkdf-sha256", "kdf:hkdf-sha1", 1)
 	if err := os.WriteFile(inPath, []byte(raw), 0o644); err != nil {
 		t.Fatalf("write tampered input: %v", err)
@@ -86,7 +86,7 @@ func TestRunWrongMnemonicReturns2(t *testing.T) {
 	dir := t.TempDir()
 	inPath := filepath.Join(dir, "in.md")
 	outPath := filepath.Join(dir, "out.txt")
-	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
+	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello txlock\n"))), 0o644); err != nil {
 		t.Fatalf("write fixture input: %v", err)
 	}
 	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM", "-index", "777"}, func(string) string {
@@ -103,7 +103,7 @@ func TestRunInvalidCTBase64Returns2(t *testing.T) {
 	dir := t.TempDir()
 	inPath := filepath.Join(dir, "in.md")
 	outPath := filepath.Join(dir, "out.txt")
-	raw := buildFixtureEnvelope(t, []byte("hello mdlock\n"))
+	raw := buildFixtureEnvelope(t, []byte("hello txlock\n"))
 	raw = strings.Replace(raw, "ct_b64:\n", "ct_b64:\n***\n", 1)
 	if err := os.WriteFile(inPath, []byte(raw), 0o644); err != nil {
 		t.Fatalf("write invalid ct input: %v", err)
@@ -119,7 +119,7 @@ func TestRunInvalidCTBase64Returns2(t *testing.T) {
 func TestRunInvalidIndexReturns1(t *testing.T) {
 	dir := t.TempDir()
 	inPath := filepath.Join(dir, "in.md")
-	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
+	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello txlock\n"))), 0o644); err != nil {
 		t.Fatalf("write fixture input: %v", err)
 	}
 	code := run([]string{"-in", inPath, "-out", "-", "-mnemonic-env", "MNEM", "-index", "001"}, func(string) string { return fixtureMnemonic() })
@@ -134,7 +134,7 @@ func TestRunValidIndexSuccess(t *testing.T) {
 	dir := t.TempDir()
 	inPath := filepath.Join(dir, "in.md")
 	outPath := filepath.Join(dir, "out.txt")
-	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
+	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello txlock\n"))), 0o644); err != nil {
 		t.Fatalf("write fixture input: %v", err)
 	}
 	code := run([]string{"-in", inPath, "-out", outPath, "-mnemonic-env", "MNEM", "-index", "777"}, func(string) string { return fixtureMnemonic() })
@@ -153,7 +153,7 @@ func TestRunDefaultOutToTmp(t *testing.T) {
 	}
 	defer func() { _ = os.Chdir(cwd) }()
 	inPath := filepath.Join(dir, "input.lock")
-	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello mdlock\n"))), 0o644); err != nil {
+	if err := os.WriteFile(inPath, []byte(buildFixtureEnvelope(t, []byte("hello txlock\n"))), 0o644); err != nil {
 		t.Fatalf("write fixture input: %v", err)
 	}
 	code := run([]string{"-in", inPath, "-mnemonic-env", "MNEM", "-index", "777"}, func(string) string { return fixtureMnemonic() })

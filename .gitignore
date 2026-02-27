@@ -47,11 +47,11 @@ _PLAN.md
 
 # Local binaries from `go build` / `go run`
 /MDLOCK
-/mdlock
+/txlock
 /txlock-enc
 /txlock-dec
 /lockfile/
 /bin
 go-wallet-sdk
-!internal/mdlock/
-!internal/mdlock/**
+!internal/lockcore/
+!internal/lockcore/**

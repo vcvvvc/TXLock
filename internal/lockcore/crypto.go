@@ -1,4 +1,4 @@
-package mdlock
+package lockcore
 
 import (
 	"crypto/aes"

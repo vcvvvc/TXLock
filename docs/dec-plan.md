@@ -111,7 +111,7 @@ nonce_b64:<NONCE_B64>\n
   - AAD 字段集合及顺序
   - `AES-256-GCM`、`salt_len`、`nonce_len`
   - Base64 规范（RawStdEncoding）
-- 任一项变更必须升级 `VERSION`（如 `mdlock:v2`），并同时定义：
+- 任一项变更必须升级 `VERSION`（如 `txlock:v2`），并同时定义：
   - 新旧版本判别规则
   - 向后兼容或迁移策略
   - 对应测试向量

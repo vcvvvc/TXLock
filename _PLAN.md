@@ -47,10 +47,12 @@
 ## Task: Rename Project to TXLock
 ### Context
 - User requested project rename from MDLOCK/mdlock-* naming to TXLock/txlock-* naming.
-- Keep protocol wire string compatibility (`mdlock:v1`) unchanged in this step.
+- User additionally requested all remaining `mdlock` strings be unified to `txlock`.
 
 ### Checklist
 - [x] Rename command folders and command binary names to `txlock-enc` / `txlock-dec`.
 - [x] Update Go module path imports from `MDLOCK/...` to `TXLOCK/...`.
 - [x] Update README/install/skill/docs references to txlock command names.
+- [x] Rename internal package path/name from `internal/txlock` to `internal/lockcore`.
+- [x] Remove remaining `mdlock` literal occurrences in docs/tests/messages.
 - [x] Run diagnostics and full test suite.

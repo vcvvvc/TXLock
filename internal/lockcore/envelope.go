@@ -1,4 +1,4 @@
-package mdlock
+package lockcore
 
 import (
 	"encoding/base64"

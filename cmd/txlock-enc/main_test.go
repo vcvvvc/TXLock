@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"TXLOCK/internal/derive"
-	"TXLOCK/internal/mdlock"
+	"TXLOCK/internal/lockcore"
 )
 
 // Why(中文): 固定合法助记词夹具，避免“助记词非法”干扰索引规则与参数层测试目标。
@@ -123,7 +123,7 @@ func TestRunRoundTripCRLFViaEnvelope(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read envelope: %v", err)
 	}
-	path, saltB64, nonceB64, ct, ok := mdlock.ParseEnvelopeV1(string(raw))
+	path, saltB64, nonceB64, ct, ok := lockcore.ParseEnvelopeV1(string(raw))
 	if !ok {
 		t.Fatalf("expected parse success")
 	}
@@ -137,7 +137,7 @@ func TestRunRoundTripCRLFViaEnvelope(t *testing.T) {
 	if err != nil {
 		t.Fatalf("derive sk: %v", err)
 	}
-	got, err := mdlock.OpenV1(sk, openPath, saltB64, nonceB64, ct)
+	got, err := lockcore.OpenV1(sk, openPath, saltB64, nonceB64, ct)
 	if err != nil || string(got) != plain {
 		t.Fatalf("round-trip mismatch, err=%v got=%q", err, string(got))
 	}

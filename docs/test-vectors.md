@@ -16,7 +16,7 @@
 - `nonce_hex`（12 bytes）  
   `00112233445566778899aabb`
 - `plaintext_utf8`  
-  `hello mdlock\n`
+  `hello txlock\n`
 
 ## 3. 约束
 - `salt_hex` 与 `nonce_hex` 仅用于测试向量，生产实现必须始终使用 `crypto/rand`。

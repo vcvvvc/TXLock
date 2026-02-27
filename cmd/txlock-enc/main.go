@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	"TXLOCK/internal/derive"
-	"TXLOCK/internal/mdlock"
+	"TXLOCK/internal/lockcore"
 )
 
 func main() {
@@ -82,12 +82,12 @@ func run(args []string, getenv func(string) string) int {
 	if err != nil {
 		return 2
 	}
-	sealed, err := mdlock.SealV1(sk, path, plain, rand.Reader)
+	sealed, err := lockcore.SealV1(sk, path, plain, rand.Reader)
 	if err != nil {
 		return 2
 	}
 	ctB64 := base64.RawStdEncoding.EncodeToString(sealed.Ciphertext)
-	envelope := mdlock.BuildEnvelopeV1(path, sealed.SaltB64, sealed.NonceB64, ctB64)
+	envelope := lockcore.BuildEnvelopeV1(path, sealed.SaltB64, sealed.NonceB64, ctB64)
 	if err := writeOutputBytes(*outPath, []byte(envelope)); err != nil {
 		return 2
 	}

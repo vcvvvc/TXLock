@@ -1,4 +1,4 @@
-package mdlock
+package lockcore
 
 import (
 	"bytes"
@@ -85,7 +85,7 @@ func TestParseHeaderKVV1Strict(t *testing.T) {
 // Why(中文): 密文区解码规则必须严格，测试同时覆盖有效拼接与典型非法输入，防止解析宽松化。
 // Why(English): Ciphertext decoding must stay strict; test both valid joins and common invalid inputs to prevent parser loosening.
 func TestDecodeCTLinesRawB64(t *testing.T) {
-	want := []byte("hello-mdlock")
+	want := []byte("hello-txlock")
 	raw := base64.RawStdEncoding.EncodeToString(want)
 	got, ok := decodeCTLinesRawB64([]string{raw[:5], raw[5:]})
 	if !ok || string(got) != string(want) {
@@ -120,7 +120,7 @@ func TestParseEnvelopeV1(t *testing.T) {
 // Why(English): Lock cross-layer compatibility with a module-level round-trip so crypto and envelope changes cannot silently diverge.
 func TestEnvelopeRoundTripV1(t *testing.T) {
 	sk, _ := hex.DecodeString("b1ec885280602151c894fb7c17d076a2469ae59161d3b418c08e2ce0b2f2ef21")
-	ptIn := []byte("hello mdlock\n")
+	ptIn := []byte("hello txlock\n")
 	sealed, err := SealV1(sk, "m/44'/60'/0'/0/777", ptIn, bytes.NewReader(make([]byte, 64)))
 	if err != nil {
 		t.Fatalf("unexpected seal error: %v", err)

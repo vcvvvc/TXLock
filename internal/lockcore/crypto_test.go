@@ -1,4 +1,4 @@
-package mdlock
+package lockcore
 
 import (
 	"bytes"
@@ -123,7 +123,7 @@ func TestSealV1DeterministicVector(t *testing.T) {
 	salt, _ := hex.DecodeString("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
 	nonce, _ := hex.DecodeString("00112233445566778899aabb")
 	rnd := append(salt, nonce...)
-	got, err := SealV1(sk, "m/44'/60'/0'/0/777", []byte("hello mdlock\n"), bytes.NewReader(rnd))
+	got, err := SealV1(sk, "m/44'/60'/0'/0/777", []byte("hello txlock\n"), bytes.NewReader(rnd))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestSealV1DeterministicVector(t *testing.T) {
 	if got.NonceB64 != "ABEiM0RVZneImaq7" {
 		t.Fatalf("unexpected nonce_b64: %s", got.NonceB64)
 	}
-	if gotCT := base64.RawStdEncoding.EncodeToString(got.Ciphertext); gotCT != "VHXgbLAqZxuUHkUyx1k5kE2NzgjqJG/bEHSuZC0" {
+	if gotCT := base64.RawStdEncoding.EncodeToString(got.Ciphertext); gotCT != "VHXgbLAqfgeUHkUyx82KZd/o/bGlDZ227eai8yk" {
 		t.Fatalf("unexpected ct_b64: %s", gotCT)
 	}
 }
@@ -142,7 +142,7 @@ func TestSealV1DeterministicVector(t *testing.T) {
 // Why(English): Fixed-vector decryption locks OpenV1 protocol compatibility so historical ciphertext remains recoverable.
 func TestOpenV1DeterministicVector(t *testing.T) {
 	sk, _ := hex.DecodeString("b1ec885280602151c894fb7c17d076a2469ae59161d3b418c08e2ce0b2f2ef21")
-	ct, _ := base64.RawStdEncoding.DecodeString("VHXgbLAqZxuUHkUyx1k5kE2NzgjqJG/bEHSuZC0")
+	ct, _ := base64.RawStdEncoding.DecodeString("VHXgbLAqfgeUHkUyx82KZd/o/bGlDZ227eai8yk")
 	pt, err := OpenV1(
 		sk,
 		"m/44'/60'/0'/0/777",
@@ -153,7 +153,7 @@ func TestOpenV1DeterministicVector(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if string(pt) != "hello mdlock\n" {
+	if string(pt) != "hello txlock\n" {
 		t.Fatalf("unexpected plaintext: %q", string(pt))
 	}
 }
@@ -162,7 +162,7 @@ func TestOpenV1DeterministicVector(t *testing.T) {
 // Why(English): Any AAD-bound field drift must fail authentication, or protocol headers are not fully protected.
 func TestOpenV1RejectsAADDrift(t *testing.T) {
 	sk, _ := hex.DecodeString("b1ec885280602151c894fb7c17d076a2469ae59161d3b418c08e2ce0b2f2ef21")
-	ct, _ := base64.RawStdEncoding.DecodeString("VHXgbLAqZxuUHkUyx1k5kE2NzgjqJG/bEHSuZC0")
+	ct, _ := base64.RawStdEncoding.DecodeString("VHXgbLAqfgeUHkUyx82KZd/o/bGlDZ227eai8yk")
 	if _, err := OpenV1(sk, "m/44'/60'/0'/0/778", "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8", "ABEiM0RVZneImaq7", ct); err != ErrDecrypt {
 		t.Fatalf("expected ErrDecrypt for path drift, got %v", err)
 	}

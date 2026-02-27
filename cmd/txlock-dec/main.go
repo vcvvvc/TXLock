@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"TXLOCK/internal/derive"
-	"TXLOCK/internal/mdlock"
+	"TXLOCK/internal/lockcore"
 )
 
 func main() {
@@ -70,7 +70,7 @@ func run(args []string, getenv func(string) string) int {
 	if !ok {
 		return failDecUsage("failed to build path from -index: " + *decIndex)
 	}
-	_, saltB64, nonceB64, ct, ok := mdlock.ParseEnvelopeV1(string(raw))
+	_, saltB64, nonceB64, ct, ok := lockcore.ParseEnvelopeV1(string(raw))
 	if !ok {
 		return failDecProcess("invalid envelope")
 	}
@@ -78,7 +78,7 @@ func run(args []string, getenv func(string) string) int {
 	if err != nil {
 		return failDecProcess("derive key failed")
 	}
-	plain, err := mdlock.OpenV1(sk, path, saltB64, nonceB64, ct)
+	plain, err := lockcore.OpenV1(sk, path, saltB64, nonceB64, ct)
 	if err != nil {
 		return failDecProcess("decrypt failed (index/mnemonic mismatch or tampered data)")
 	}
@@ -176,7 +176,7 @@ func defaultDecOutPath(inPath string) (string, error) {
 		base := filepath.Base(inPath)
 		name = strings.TrimSuffix(base, ".lock")
 		if name == base {
-			name = strings.TrimSuffix(base, ".mdlock")
+			name = strings.TrimSuffix(base, ".txlock")
 		}
 		if name == base {
 			name = strings.TrimSuffix(base, filepath.Ext(base))
