@@ -26,7 +26,7 @@ func TestHKDFSHA256Deterministic(t *testing.T) {
 // Why(English): Freeze AAD fields and order with an exact string assertion so refactors cannot silently alter protocol bytes.
 func TestBuildAADV1Template(t *testing.T) {
 	got := string(buildAADV1("m/44'/60'/0'/0/777", "saltx", "noncey"))
-	want := "mdlock:v1\n" +
+	want := "txlock:v1\n" +
 		"chain:ethereum\n" +
 		"path:m/44'/60'/0'/0/777\n" +
 		"kdf:hkdf-sha256\n" +
@@ -133,7 +133,7 @@ func TestSealV1DeterministicVector(t *testing.T) {
 	if got.NonceB64 != "ABEiM0RVZneImaq7" {
 		t.Fatalf("unexpected nonce_b64: %s", got.NonceB64)
 	}
-	if gotCT := base64.RawStdEncoding.EncodeToString(got.Ciphertext); gotCT != "hIXlwO1oHMmIR4zci5xu1VN2EFOm8ubLkBQpELE" {
+	if gotCT := base64.RawStdEncoding.EncodeToString(got.Ciphertext); gotCT != "VHXgbLAqZxuUHkUyx1k5kE2NzgjqJG/bEHSuZC0" {
 		t.Fatalf("unexpected ct_b64: %s", gotCT)
 	}
 }
@@ -142,7 +142,7 @@ func TestSealV1DeterministicVector(t *testing.T) {
 // Why(English): Fixed-vector decryption locks OpenV1 protocol compatibility so historical ciphertext remains recoverable.
 func TestOpenV1DeterministicVector(t *testing.T) {
 	sk, _ := hex.DecodeString("b1ec885280602151c894fb7c17d076a2469ae59161d3b418c08e2ce0b2f2ef21")
-	ct, _ := base64.RawStdEncoding.DecodeString("hIXlwO1oHMmIR4zci5xu1VN2EFOm8ubLkBQpELE")
+	ct, _ := base64.RawStdEncoding.DecodeString("VHXgbLAqZxuUHkUyx1k5kE2NzgjqJG/bEHSuZC0")
 	pt, err := OpenV1(
 		sk,
 		"m/44'/60'/0'/0/777",
@@ -162,7 +162,7 @@ func TestOpenV1DeterministicVector(t *testing.T) {
 // Why(English): Any AAD-bound field drift must fail authentication, or protocol headers are not fully protected.
 func TestOpenV1RejectsAADDrift(t *testing.T) {
 	sk, _ := hex.DecodeString("b1ec885280602151c894fb7c17d076a2469ae59161d3b418c08e2ce0b2f2ef21")
-	ct, _ := base64.RawStdEncoding.DecodeString("hIXlwO1oHMmIR4zci5xu1VN2EFOm8ubLkBQpELE")
+	ct, _ := base64.RawStdEncoding.DecodeString("VHXgbLAqZxuUHkUyx1k5kE2NzgjqJG/bEHSuZC0")
 	if _, err := OpenV1(sk, "m/44'/60'/0'/0/778", "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8", "ABEiM0RVZneImaq7", ct); err != ErrDecrypt {
 		t.Fatalf("expected ErrDecrypt for path drift, got %v", err)
 	}

@@ -26,7 +26,7 @@ func wrapB64Lines76(raw string) []string {
 // Why(English): Minimized visible header reduces metadata exposure while preserving stable boundaries and newline rules.
 func BuildEnvelopeV1(_ string, saltB64 string, nonceB64 string, ctB64 string) string {
 	var b strings.Builder
-	b.WriteString("<!--\nmdlock:v1\nkdf:hkdf-sha256\naead:aes-256-gcm\nsalt_b64:")
+	b.WriteString("<!--\ntxlock:v1\nkdf:hkdf-sha256\naead:aes-256-gcm\nsalt_b64:")
 	b.WriteString(saltB64)
 	b.WriteString("\nnonce_b64:")
 	b.WriteString(nonceB64)
@@ -55,7 +55,7 @@ func extractEnvelopeBodyV1(raw string) (string, bool) {
 // Why(English): Header parsing must be zero-tolerance at syntax level to avoid loose normalization of security-sensitive inputs.
 func parseHeaderKVV1(body string) (map[string]string, []string, bool) {
 	lines := strings.Split(body, "\n")
-	if len(lines) < 8 || lines[0] != "mdlock:v1" || lines[len(lines)-1] != "" {
+	if len(lines) < 8 || lines[0] != "txlock:v1" || lines[len(lines)-1] != "" {
 		return nil, nil, false
 	}
 	out := map[string]string{}

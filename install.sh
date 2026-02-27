@@ -9,17 +9,17 @@ INSTALL_DIR="${1:-/usr/local/bin}"
 # Why(English): Build and install in one script to prevent version mismatch from manual multi-step commands.
 build_and_install() {
   mkdir -p "$BIN_DIR"
-  go build -o "$BIN_DIR/mdlock-enc" ./cmd/mdlock-enc
-  go build -o "$BIN_DIR/mdlock-dec" ./cmd/mdlock-dec
+  go build -o "$BIN_DIR/txlock-enc" ./cmd/txlock-enc
+  go build -o "$BIN_DIR/txlock-dec" ./cmd/txlock-dec
 
   if [ ! -d "$INSTALL_DIR" ]; then
     sudo mkdir -p "$INSTALL_DIR"
   fi
 
-  sudo install -m 0755 "$BIN_DIR/mdlock-enc" "$INSTALL_DIR/mdlock-enc"
-  sudo install -m 0755 "$BIN_DIR/mdlock-dec" "$INSTALL_DIR/mdlock-dec"
+  sudo install -m 0755 "$BIN_DIR/txlock-enc" "$INSTALL_DIR/txlock-enc"
+  sudo install -m 0755 "$BIN_DIR/txlock-dec" "$INSTALL_DIR/txlock-dec"
 }
 
 cd "$ROOT_DIR"
 build_and_install
-echo "Installed: $INSTALL_DIR/mdlock-enc $INSTALL_DIR/mdlock-dec"
+echo "Installed: $INSTALL_DIR/txlock-enc $INSTALL_DIR/txlock-dec"

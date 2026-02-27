@@ -1,4 +1,4 @@
-module MDLOCK
+module TXLOCK
 
 go 1.25.7
 

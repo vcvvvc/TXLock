@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"MDLOCK/internal/derive"
-	"MDLOCK/internal/mdlock"
+	"TXLOCK/internal/derive"
+	"TXLOCK/internal/mdlock"
 )
 
 func fixtureMnemonic() string {

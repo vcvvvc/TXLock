@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"MDLOCK/internal/derive"
-	"MDLOCK/internal/mdlock"
+	"TXLOCK/internal/derive"
+	"TXLOCK/internal/mdlock"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 // Why(中文): enc/dec 共享同一参数失败语义，便于脚本化调用时稳定判定错误类型。
 // Why(English): Keeping identical failure semantics across enc/dec provides stable automation behavior.
 func run(args []string, getenv func(string) string) int {
-	fs := flag.NewFlagSet("mdlock-dec", flag.ContinueOnError)
+	fs := flag.NewFlagSet("txlock-dec", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
 	inPath := fs.String("in", "-", "")
@@ -91,21 +91,21 @@ func run(args []string, getenv func(string) string) int {
 // Why(中文): 参数类失败打印明确 stderr 诊断，避免用户只看到退出码却误以为命令未报错。
 // Why(English): Print explicit stderr diagnostics for usage failures so users don't mistake silent exit codes for success.
 func failDecUsage(msg string) int {
-	_, _ = io.WriteString(os.Stderr, "mdlock-dec: "+msg+"\n")
+	_, _ = io.WriteString(os.Stderr, "txlock-dec: "+msg+"\n")
 	return 1
 }
 
 // Why(中文): 处理层失败也输出明确 stderr，避免解密失败只剩退出码导致排障成本上升。
 // Why(English): Emit explicit stderr on processing failures so decrypt errors are diagnosable without relying on exit code alone.
 func failDecProcess(msg string) int {
-	_, _ = io.WriteString(os.Stderr, "mdlock-dec: "+msg+"\n")
+	_, _ = io.WriteString(os.Stderr, "txlock-dec: "+msg+"\n")
 	return 2
 }
 
 // Why(中文): dec 与 enc 保持一致的帮助输出策略，避免用户在禁用默认 flag 输出时无法发现参数约定。
 // Why(English): Keep dec help behavior aligned with enc so users can discover flags even when default flag output is suppressed.
 func printDecUsage() {
-	fmt.Fprintln(os.Stdout, "Usage: mdlock-dec -mnemonic-env ENV -index N [-in PATH|-] [-out PATH|-]")
+	fmt.Fprintln(os.Stdout, "Usage: txlock-dec -mnemonic-env ENV -index N [-in PATH|-] [-out PATH|-]")
 	fmt.Fprintln(os.Stdout, "Flags:")
 	fmt.Fprintln(os.Stdout, "  -mnemonic-env string   环境变量名，变量值为助记词 (required)")
 	fmt.Fprintln(os.Stdout, "  -index string          派生索引 (required)")

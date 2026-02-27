@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"MDLOCK/internal/derive"
-	"MDLOCK/internal/mdlock"
+	"TXLOCK/internal/derive"
+	"TXLOCK/internal/mdlock"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 // Why(中文): 先冻结参数与退出码语义，后续接入加密逻辑时可避免 CLI 行为漂移。
 // Why(English): Locking CLI argument and exit-code semantics early prevents behavior drift when crypto logic is added later.
 func run(args []string, getenv func(string) string) int {
-	fs := flag.NewFlagSet("mdlock-enc", flag.ContinueOnError)
+	fs := flag.NewFlagSet("txlock-enc", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
 	inPath := fs.String("in", "-", "")
@@ -98,14 +98,14 @@ func run(args []string, getenv func(string) string) int {
 // Why(中文): 参数类失败之前输出明确错误文本，避免仅靠退出码导致“看起来没报错”的误判。
 // Why(English): Emit explicit usage errors before returning so failures are visible instead of relying on exit code alone.
 func failEncUsage(msg string) int {
-	_, _ = io.WriteString(os.Stderr, "mdlock-enc: "+msg+"\n")
+	_, _ = io.WriteString(os.Stderr, "txlock-enc: "+msg+"\n")
 	return 1
 }
 
 // Why(中文): 在保持原有退出码语义的同时，单独处理帮助请求，避免被静默丢弃造成“命令无响应”误判。
 // Why(English): Handle help explicitly so usage isn't swallowed by discarded flag output while preserving existing exit-code semantics.
 func printEncUsage() {
-	fmt.Fprintln(os.Stdout, "Usage: mdlock-enc -mnemonic-env ENV [-in PATH|-] [-out PATH|-] [-index N]")
+	fmt.Fprintln(os.Stdout, "Usage: txlock-enc -mnemonic-env ENV [-in PATH|-] [-out PATH|-] [-index N]")
 	fmt.Fprintln(os.Stdout, "Flags:")
 	fmt.Fprintln(os.Stdout, "  -mnemonic-env string   环境变量名，变量值为助记词 (required)")
 	fmt.Fprintln(os.Stdout, "  -in string             输入文件路径，默认 - (stdin)")

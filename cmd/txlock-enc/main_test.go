@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"MDLOCK/internal/derive"
-	"MDLOCK/internal/mdlock"
+	"TXLOCK/internal/derive"
+	"TXLOCK/internal/mdlock"
 )
 
 // Why(中文): 固定合法助记词夹具，避免“助记词非法”干扰索引规则与参数层测试目标。

@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-const infoV1 = "mdlock:v1|chain=ethereum|path=bip44|kdf=hkdf-sha256|aead=aes-256-gcm"
+const infoV1 = "txlock:v1|chain=ethereum|path=bip44|kdf=hkdf-sha256|aead=aes-256-gcm"
 
 var (
 	ErrInvalidSK   = errors.New("invalid sk")
@@ -50,7 +50,7 @@ func hkdfSHA256(ikm []byte, salt []byte, info []byte, size int) []byte {
 // Why(中文): AAD 模板必须字节级冻结，单独函数化可避免后续拼接顺序或换行误改导致解密不兼容。
 // Why(English): Keep AAD serialization frozen in one function to prevent accidental ordering/newline drift that breaks compatibility.
 func buildAADV1(path string, saltB64 string, nonceB64 string) []byte {
-	return []byte("mdlock:v1\n" +
+	return []byte("txlock:v1\n" +
 		"chain:ethereum\n" +
 		"path:" + path + "\n" +
 		"kdf:hkdf-sha256\n" +

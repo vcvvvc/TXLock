@@ -1,7 +1,7 @@
-# MDLOCK 加密方案（MVP v1，实施版）
+# TXLock 加密方案（MVP v1，实施版）
 
 ## 1. 文档定位
-- 本文定义 MDLOCK v1 的加密与认证实现细节。
+- 本文定义 TXLock v1 的加密与认证实现细节。
 - 派生私钥来源见 `plan-overview.md`：输入为 32-byte `sk`（叶子私钥字节）。
 - 本文只定义加密方案，不定义助记词与 BIP 派生流程。
 
@@ -15,11 +15,10 @@
   - 不隐藏元信息（`path`、算法名在头中明文可见）。
 
 ## 3. 常量与参数（v1 冻结）
-- `VERSION = "mdlock:v1"`
-- `CHAIN = "ethereum"`
+- `VERSION = "txlock:v1"`
 - `KDF = "hkdf-sha256"`
 - `AEAD = "aes-256-gcm"`
-- `INFO = "mdlock:v1|chain=ethereum|path=bip44|kdf=hkdf-sha256|aead=aes-256-gcm"`
+- `INFO = "txlock:v1|chain=ethereum|path=bip44|kdf=hkdf-sha256|aead=aes-256-gcm"`
 - `salt_len = 32` bytes
 - `nonce_len = 12` bytes
 - 对称密钥长度：32 bytes
@@ -28,7 +27,6 @@
 ## 4. 输入与输出
 - 输入：
   - `sk`：32 bytes（来自 `plan-overview.md` 派生）。
-  - `path`：`m/44'/60'/0'/0/<i>` 规范字符串。
   - `plaintext`：原始字节流（不规范化）。
 - 输出：
   - `salt`（32 bytes）
@@ -42,7 +40,7 @@
   - 最后结束即 `-->\n`
   - 除该注释块外不得有任何额外字节（前后都不允许）。
 - 注释块内行语法：
-  - 允许两类行：`mdlock:v1`（magic 行）或 `key:value`（字段行）。
+  - 允许两类行：`txlock:v1`（magic 行）或 `key:value`（字段行）。
   - 行首与行尾禁止空白字符（空格、Tab、`\r`）。
   - `key` 与 `:` 之间、`:` 与 `value` 之间都不允许空白。
 - 密文字段：
@@ -66,7 +64,7 @@
 - AAD 序列化必须逐字节等于以下模板（`\n` 为 ASCII 0x0A）：
 
 ```text
-mdlock:v1\n
+txlock:v1\n
 chain:ethereum\n
 path:<PATH>\n
 kdf:hkdf-sha256\n

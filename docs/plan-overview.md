@@ -1,4 +1,4 @@
-# MDLOCK 计划（MVP v1，精简版）
+# TXLock 计划（MVP v1，精简版）
 
 > 目标：10 年后仅凭 BIP39 助记词离线恢复同一私钥并解密；不依赖特定钱包产品；加密文件保持 Markdown 稳定格式。
 
@@ -27,9 +27,8 @@
 
 ## 4. 文件格式（Markdown 保证格式稳定）
 - 输出为单个 HTML 注释块，头字段固定：
-  - `mdlock:v1`
+  - `txlock:v1`
   - `chain:ethereum`
-  - `path:m/44'/60'/0'/0/<i>`
   - `kdf:hkdf-sha256`
   - `aead:aes-256-gcm`
   - `salt_b64:<raw-base64>`
@@ -42,23 +41,22 @@
   - 文件为 UTF-8 无 BOM，行尾 `\n`。
   - 文件必须以 `<!--\n` 开始，以 `-->\n` 结束，前后不得有任何额外字节。
 - 解析约束：
-  - 行必须严格为 `mdlock:v1` 或 `key:value`；不允许行首/行尾空白。
+  - 行必须严格为 `txlock:v1` 或 `key:value`；不允许行首/行尾空白。
   - `ct_b64:` 后直到 `-->` 的所有行都视为密文区。
   - 不允许未知字段或重复字段。
   - 任一校验失败即处理失败。
 
 ## 5. CLI（两个程序）
-- `mdlock-enc`：加密。
-- `mdlock-dec`：解密。
+- `txlock-enc`：加密。
+- `txlock-dec`：解密。
 - 通用参数：
   - `-in <path>`（默认 `-`）
   - `-out <path>`（默认 `-`）
   - `--mnemonic-env <ENV>`
   - `--help` / `--version`
-- `mdlock-enc`：
+- `txlock-enc`：
   - `--index <N>`（默认 `777`）
-  - 写入 `path:m/44'/60'/0'/0/<N>`
-- `mdlock-dec`：
+- `txlock-dec`：
   - 默认读取文件头 `path`
   - 可选 `--path-override <PATH>`（仅用于救援覆盖，非法则参数错误）
 
@@ -93,7 +91,7 @@
 - `plan-overview.md`：本精简规范。
 - `dec-plan.md`：加密方案细节（v1）。
 - `docs/recovery.md`：离线恢复说明（含 BIP39/BIP32/BIP44 固定参数）。
-- `cmd/mdlock-enc`、`cmd/mdlock-dec`：两个独立 CLI。
+- `cmd/txlock-enc`、`cmd/txlock-dec`：两个独立 CLI。
 - `docs/test-vectors.md`：测试夹具（固定助记词与向量）。
 - `docs/proxy-sol.md`：待加密明文样本（多格式语料）。
 - `*_test.go`：覆盖派生、加解密、篡改、错误码。

@@ -1,4 +1,4 @@
-# MDLock
+# TXLock
 
 > 仅凭 BIP39/44 助记词离线加解密工具。
 > 凭助记词+path+index 稳定恢复并解密。
@@ -14,23 +14,23 @@ export MNEM='abandon abandon abandon abandon abandon abandon abandon abandon aba
 
 ```
 
-`mdlock-enc` / `mdlock-dec` 都通过 `-mnemonic-env` 读取环境变量名，不直接在参数里传助记词。
+`txlock-enc` / `txlock-dec` 都通过 `-mnemonic-env` 读取环境变量名，不直接在参数里传助记词。
 
 ### 2. 直接运行（go run）
 
 ```bash
-go run ./cmd/mdlock-enc -in docs/test-vectors.md -mnemonic-env MNEM -index 777
-go run ./cmd/mdlock-dec -in lockfile/lock/test-vectors.md.lock -mnemonic-env MNEM -index 777
+go run ./cmd/txlock-enc -in docs/test-vectors.md -mnemonic-env MNEM -index 777
+go run ./cmd/txlock-dec -in lockfile/lock/test-vectors.md.lock -mnemonic-env MNEM -index 777
 ```
 
 ### 3. 可选：编译二进制
 
 ```bash
-go build -o ./bin/mdlock-enc ./cmd/mdlock-enc
-go build -o ./bin/mdlock-dec ./cmd/mdlock-dec
+go build -o ./bin/txlock-enc ./cmd/txlock-enc
+go build -o ./bin/txlock-dec ./cmd/txlock-dec
 
-./bin/mdlock-enc -in docs/test-vectors.md -mnemonic-env MNEM -index 777
-./bin/mdlock-dec -in lockfile/lock/test-vectors.md.lock -mnemonic-env MNEM -index 777
+./bin/txlock-enc -in docs/test-vectors.md -mnemonic-env MNEM -index 777
+./bin/txlock-dec -in lockfile/lock/test-vectors.md.lock -mnemonic-env MNEM -index 777
 ```
 
 ### 4. 输出策略（默认与覆盖）
@@ -43,8 +43,8 @@ go build -o ./bin/mdlock-dec ./cmd/mdlock-dec
 示例（显式覆盖默认）：
 
 ```bash
-./bin/mdlock-enc -in docs/test-vectors.md -out ./lockfile/lock/custom.lock -mnemonic-env MNEM
-./bin/mdlock-dec -in lockfile/lock/custom.lock -out ./lockfile/unlock/custom -mnemonic-env MNEM -index 777
+./bin/txlock-enc -in docs/test-vectors.md -out ./lockfile/lock/custom.lock -mnemonic-env MNEM
+./bin/txlock-dec -in lockfile/lock/custom.lock -out ./lockfile/unlock/custom -mnemonic-env MNEM -index 777
 ```
 
 ### 5. 字节级回环校验
@@ -56,7 +56,7 @@ cmp -s docs/test-vectors.md lockfile/unlock/test-vectors.md && echo OK
 ### 6. 全局安装(可选)
 
 ```bash
-sudo install -m 0755 bin/mdlock-enc /usr/local/bin/mdlock-enc && sudo install -m 0755 bin/mdlock-dec /usr/local/bin/mdlock-dec 
+sudo install -m 0755 bin/txlock-enc /usr/local/bin/txlock-enc && sudo install -m 0755 bin/txlock-dec /usr/local/bin/txlock-dec 
 ```
 
 ### 7. 错误码

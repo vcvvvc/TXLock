@@ -1,4 +1,4 @@
-# MDLOCK v1 测试夹具（最小集）
+# TXLock v1 测试夹具（最小集）
 
 ## 1. 固定输入
 - `mnemonic`（English, 12 词）  
